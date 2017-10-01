@@ -10,4 +10,11 @@ Project z pokrocilych databaz
 Asi pocitanie obyvatelov v presove.
 https://data.gov.sk/dataset/pocetnost-obcanov-mesta-presov-na-trvalom-pobyte/resource/a99caedc-6a47-42cf-9315-8bf34892ce87
 
+DB
 
+User
+username: dbs
+password: dbs
+DB dbs
+
+Import data by ogr2ogr from data.json to database dbs.
