@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sample Site</title>
+
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+  <script src='https://api.mapbox.com/mapbox-gl-js/v0.40.0/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v0.40.0/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    body { padding-top:50px; }
+  </style>
+</head>
+<body>
+
+
+<div class="container">
+  <div class="jumbotron" style='width: 800px; height: 600px;'>
+    <div id='map' style='width: 100%; height: 100%;'></div>
+    <script>
+      mapboxgl.accessToken = 'pk.eyJ1IjoibWlzZW5vb29vbyIsImEiOiJjajliOTl5OXcxNGI1MzNwYW53cGN3dXV5In0.CjxgSMRJUGvLDO_aZGHstw';
+      var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v10',
+        zoom: 15,
+        center:[21.239607, 48.997906]
+      });
+
+      var streets = false;
+
+      async function getAllPoints(){
+        try {
+          let response = await fetch('http://localhost:8085/api/population');
+          let data = await response.json();
+
+          let layer = {
+            "id": "points",
+            "type": "symbol",
+            "source": {
+              "type": "geojson",
+              "data": {
+                "type": "FeatureCollection",
+                "features": data
+              }
+            },
+            "layout": {
+              "icon-image": "{icon}-15",
+              "text-field": "{title}",
+              "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+              "text-offset": [0, 0.6],
+              "text-anchor": "top"
+            }
+          };
+          map.addLayer(layer);
+        } catch (err){
+          throw (err);
+        }
+      }
+
+      async function getAllStreets() {
+        try {
+          let response = await fetch('http://localhost:8085/api/streets');
+          let data = await response.json();
+          console.log(data);
+
+          let street_source = {
+            "type": "geojson",
+            "data": {
+              "type": "FeatureCollection",
+              "features": data
+            }
+          };
+          map.addSource("street_source", street_source);
+
+          map.addLayer({
+            "id": "streets",
+            "type": "line",
+            "source": "street_source",
+            "layout": {
+              "line-join": "round",
+              "line-cap": "round"
+            },
+            "paint": {
+              "line-color": "orange",
+              "line-width": 6
+            }
+          });
+
+          map.addLayer({
+            "id": "street_labels",
+            "type": "symbol",
+            "source": "street_source",
+            "layout": {
+              "symbol-placement": "line",
+              "text-font": ["Open Sans Regular"],
+              "text-field": '{title}',
+              "text-size": 16
+            }
+          });
+        } catch (err){
+          throw (err);
+        }
+      }
+
+      async function getAllCityParts() {
+
+      }
+
+      map.on('load', async function () {
+        try {
+          await getAllPoints();
+          await getAllStreets();
+          await getAllCityParts();
+        } catch (err) {
+          console.log(err, 'err');
+        }
+       /* map.addLayer({
+          "id": "points",
+          "type": "symbol",
+          "source": {
+            "type": "geojson",
+            "data": {
+              "type": "FeatureCollection",
+              "features": [{
+                "type": "Feature",
+                "geometry": {
+                  "type": "MultiPoint",
+                  "coordinates": [[21.2548036320054, 48.9924740346]]
+                },
+                "properties": {
+                  "title": "Mapbox DC",
+                  "icon": "monument"
+                }
+              }, {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [21.203017518245378, 48.992612257288]
+                },
+                "properties": {
+                  "title": "Mapbox SF",
+                  "icon": "harbor"
+                }
+              }]
+            }
+          },
+          "layout": {
+            "icon-image": "{icon}-15",
+            "text-field": "{title}",
+            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+            "text-offset": [0, 0.6],
+            "text-anchor": "top"
+          }
+        });*/
+      });
+    </script>
+  </div>
+</div>
+
+</body>
+</html>
