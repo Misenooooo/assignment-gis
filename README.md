@@ -36,3 +36,7 @@ Pomenena verzia
 let all_population_query = 'SELECT \'Feature\' as type, poc_tp, n_u, co, cs,' +
   'ST_AsGeoJSON(ST_TRANSFORM(wkb_geometry, \'+proj=krovak +lat_0=49.689 +lon_0=24.8315 +alpha=30.28813975277778 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +units=m +no_defs \', 4326),20) as geom FROM DATA limit 50';
 
+Koniec niecoho
+
+SELECT SUM(poc_tp),n_u,ST_MakeLine(ST_TRANSFORM(wkb_geometry, '+proj=krovak +lat_0=49.689 +lon_0=24.8315 +alpha=30.28813975277778 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +units=m +no_defs ', 4326)) FROM DATA  GROUP BY n_u
+
