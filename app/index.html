@@ -2,24 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sample Site</title>
+  <title>Prešov online</title>
 
   <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
   <script src='https://api.mapbox.com/mapbox-gl-js/v0.40.0/mapbox-gl.js'></script>
   <link href='https://api.mapbox.com/mapbox-gl-js/v0.40.0/mapbox-gl.css' rel='stylesheet' />
+
+  <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.0.0/mapbox-gl-draw.js'></script>
+  <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.0.0/mapbox-gl-draw.css' type='text/css'/>
+
   <style>
     body { margin:0; padding:0; }
     #map { position:absolute; top:0; bottom:0; width:100%; }
+    #menu-header{
+      position: absolute;
+      z-index: 1;
+      top: 10px;
+      left: 10px;
+    }
     #menu {
       background: #fff;
       position: absolute;
       z-index: 1;
-      top: 10px;
-      right: 10px;
+      top: 65px;
+      left: 10px;
       border-radius: 3px;
       width: 120px;
       border: 1px solid rgba(0,0,0,0.4);
       font-family: 'Open Sans', sans-serif;
+    }
+
+    #header {
+      position: absolute;
+      z-index: 1;
+      top: 10px;
+      left: 36%;
     }
 
     #menu a {
@@ -51,11 +68,23 @@
     #menu a.active:hover {
       background: #3074a4;
     }
+
+    #polygon-header{
+      position: absolute;
+      z-index: 1;
+      top: 10px;
+      right: 10px;
+    }
+    .mapboxgl-ctrl-top-right{
+      top: 65px;
+    }
   </style>
 </head>
 <body>
-
+    <h3 id="menu-header">Select a layer.</h3>
     <nav id="menu"></nav>
+    <h1 id="header">Prešov permanent residents online</h1>
+    <h3 id="polygon-header">Draw a polygon.</h3>
     <div id="map"></div>
     <script>
       mapboxgl.accessToken = 'pk.eyJ1IjoibWlzZW5vb29vbyIsImEiOiJjajliOTl5OXcxNGI1MzNwYW53cGN3dXV5In0.CjxgSMRJUGvLDO_aZGHstw';
@@ -63,8 +92,40 @@
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v10',
         zoom: 12,
-        center:[21.239607, 48.997906]
+        center:[21.239607, 48.997906],
       });
+
+      var draw = new MapboxDraw({
+        displayControlsDefault: false,
+        controls: {
+          polygon: true,
+          trash: true
+        }
+      });
+
+      map.addControl(draw);
+      map.on('draw.create', updateCount);
+      map.on('draw.delete', deleteCount);
+      map.on('draw.update', updateCount);
+      async function updateCount(e) {
+        console.log('data');
+        console.log(e.features[0].geometry);
+        let response = await fetch("http://localhost:8085/api/population-on-polygon", {
+          method: "POST",
+          headers: {
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(e.features[0].geometry)
+        });
+        let data = await response.json();
+
+        document.getElementById('polygon-header').innerHTML= data[0].sum + ' residents living on this area';
+      }
+
+      function deleteCount(e){
+        document.getElementById('polygon-header').innerHTML= 'Draw a polygon.';
+      }
 
       var streets = false;
 
@@ -74,7 +135,7 @@
           let data = await response.json();
 
           let layer = {
-            "id": "points",
+            "id": "addresses",
             "type": "symbol",
             "source": {
               "type": "geojson",
@@ -162,7 +223,7 @@
         map.addSource("city_parts_source", city_parts_source);
 
         map.addLayer({
-          "id": "city_parts",
+          "id": "parts of the city",
           "type": "fill",
           "source": "city_parts_source",
           'layout': {},
@@ -195,14 +256,14 @@
         }
       });
       // klikatelne taby vpravo hore
-      var toggleableLayerIds = [ 'points', 'streets', 'city_parts' ];
+      var toggleableLayerIds = [ 'addresses', 'streets', 'parts of the city' ];
 
       for (var i = 0; i < toggleableLayerIds.length; i++) {
         var id = toggleableLayerIds[i];
 
         var link = document.createElement('a');
         link.href = '#';
-        if(id === 'city_parts'){
+        if(id === 'parts of the city'){
           link.className = 'active';
         }
         link.textContent = id;
@@ -220,7 +281,7 @@
             if(clickedLayer === 'streets'){
               map.setLayoutProperty('street_labels', 'visibility', 'none');
             }
-            if(clickedLayer === 'city_parts'){
+            if(clickedLayer === 'parts of the city'){
               map.setLayoutProperty('city_parts_labels', 'visibility', 'none');
             }
           } else {
@@ -228,7 +289,7 @@
             if(clickedLayer === 'streets') {
               map.setLayoutProperty('street_labels', 'visibility', 'visible');
             }
-            if(clickedLayer === 'city_parts'){
+            if(clickedLayer === 'parts of the city'){
               map.setLayoutProperty('city_parts_labels', 'visibility', 'visible');
             }
             map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
@@ -239,7 +300,26 @@
         layers.appendChild(link);
       }
 
+     /* var autoComplete;
+      (async function () {
+        autoComplete  = new autoComplete( {
+          selector: 'input[name="q"]',
+          minChars: 2,
+          source: async function(term, suggest){
+          term = term.toLowerCase();
+          var matches = [];
+          var choices = await fetch('http://localhost:8085/api/street-names');
+          for (i=0; i<choices.length; i++)
+            if (~choices[i].toLowerCase().indexOf(term)) matches.push(choices[i]);
+          suggest(matches);
+        });
+      })();
 
+      autoComplete.onSelect(event, term, item){
+        console.log(term);
+        console.log(event);
+        console.log(item);
+      }*/
 
 
     </script>
