@@ -299,29 +299,6 @@
         var layers = document.getElementById('menu');
         layers.appendChild(link);
       }
-
-     /* var autoComplete;
-      (async function () {
-        autoComplete  = new autoComplete( {
-          selector: 'input[name="q"]',
-          minChars: 2,
-          source: async function(term, suggest){
-          term = term.toLowerCase();
-          var matches = [];
-          var choices = await fetch('http://localhost:8085/api/street-names');
-          for (i=0; i<choices.length; i++)
-            if (~choices[i].toLowerCase().indexOf(term)) matches.push(choices[i]);
-          suggest(matches);
-        });
-      })();
-
-      autoComplete.onSelect(event, term, item){
-        console.log(term);
-        console.log(event);
-        console.log(item);
-      }*/
-
-
     </script>
 </body>
 </html>
