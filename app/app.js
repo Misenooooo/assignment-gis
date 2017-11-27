@@ -95,7 +95,6 @@ router.get('/', async function(req, res) {
   res.sendFile(('/home/michal/Desktop/advanced-dbs/app/index.html'));
 });
 
-
 app.use(router);
 app.listen(port);
 console.log('Magic happens on port ' + port);

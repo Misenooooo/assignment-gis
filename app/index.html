@@ -108,8 +108,6 @@
       map.on('draw.delete', deleteCount);
       map.on('draw.update', updateCount);
       async function updateCount(e) {
-        console.log('data');
-        console.log(e.features[0].geometry);
         let response = await fetch("http://localhost:8085/api/population-on-polygon", {
           method: "POST",
           headers: {
